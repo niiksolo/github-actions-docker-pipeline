@@ -1,10 +1,12 @@
-[![CI/CD](https://github.com/niiksolo/github-actions-docker-pipeline/actions/workflows/ci.yml/badge.svg)](https://github.com/niiksolo/github-actions-docker-pipeline/actions)
+# Booking Service
 
-# Booking Service 
+![CI](https://github.com/USERNAME/REPO/actions/workflows/ci.yml/badge.svg)
+![CD](https://github.com/USERNAME/REPO/actions/workflows/cd.yml/badge.svg)
 
-Учебный проект. Микросервис на **FastAPI + PostgreSQL** с тестами и настроенным CI/CD на **GitHub Actions**.
-
----
+Учебный проект с CI/CD на GitHub Actions:
+- **CI Pipeline**: build → unit tests → integration + smoke + e2e tests.
+- **CD Pipeline**: build Docker image → deploy staging (develop) → deploy prod (main).
+- Docker-образы публикуются в **GitHub Container Registry (GHCR)**.
 
 ## 🚀 Технологии
 - Python 3.12, FastAPI  
@@ -13,16 +15,4 @@
 - Docker / Docker Compose  
 - GitHub Actions + GitHub Container Registry (GHCR)  
 
----
-
-## ⚙️ CI/CD
-- При пуше в `feature/*` → unit-тесты  
-- При пуше в `develop` → unit + integration + smoke  
-- При пуше в `main` → полный прогон тестов и публикация образа в **GHCR**  
-- Заглушки для деплоя (staging/prod), можно подключить docker-compose или Kubernetes  
-
----
-
-## 🐳 Запуск
-```bash
-docker compose up --build
+📌 Все отчёты по тестам доступны в логах GitHub Actions. При необходимости можно подключить сохранение HTML/JUnit-отчётов как artifacts.
