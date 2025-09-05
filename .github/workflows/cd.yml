@@ -1,0 +1,34 @@
+name: CD
+
+on:
+  workflow_run:
+    workflows: ["CI"]
+    types:
+      - completed
+
+jobs:
+  deploy-staging:
+    runs-on: ubuntu-latest
+    needs: []
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
+    steps:
+      - name: Deploy to Staging (manual)
+        run: echo "🚀 Deploying staging with Docker pull..."
+        shell: bash
+    environment:
+      name: staging
+    concurrency: staging
+    # ручной запуск
+    workflow_dispatch:
+
+  deploy-prod:
+    runs-on: ubuntu-latest
+    needs: []
+    if: ${{ github.event.workflow_run.conclusion == 'success' && github.ref == 'refs/heads/main' }}
+    steps:
+      - name: Deploy to Production
+        run: echo "🚀 Deploying production with Docker pull..."
+        shell: bash
+    environment:
+      name: production
+    concurrency: production
