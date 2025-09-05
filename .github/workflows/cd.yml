@@ -1,84 +1,37 @@
 name: CD
 
 on:
-  # Автоматический запуск после успешного CI на main
-  workflow_run:
-    workflows: [ "CI" ]
-    types: [ completed ]
-  # И ручной запуск с кнопки
+  push:
+    branches:
+      - main
   workflow_dispatch:
 
-permissions:
-  contents: read
-  packages: write    # нужно для push в GHCR
-
 jobs:
-  build_and_push:
-    # Запускаем если:
-    #  - вручную (workflow_dispatch), ИЛИ
-    #  - CI прошёл успешно на ветке main
-    if: ${{ github.event_name == 'workflow_dispatch' || (github.event_name == 'workflow_run' && github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.head_branch == 'main') }}
+  deploy_prod:
+    name: Deploy to Production
+    if: github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
 
     steps:
-      # Checkout коммита, который прошёл CI (для workflow_run)
-      - name: Checkout (from CI head_sha)
-        if: ${{ github.event_name == 'workflow_run' }}
-        uses: actions/checkout@v4
-        with:
-          ref: ${{ github.event.workflow_run.head_sha }}
+      - name: Checkout repository
+        uses: actions/checkout@v3
 
-      # Вручную — просто текущий HEAD репозитория
-      - name: Checkout (manual)
-        if: ${{ github.event_name == 'workflow_dispatch' }}
-        uses: actions/checkout@v4
-
-      - name: Compute image name (lowercase)
-        id: names
-        run: |
-          repo_lower=$(echo "${{ github.repository }}" | tr '[:upper:]' '[:lower:]')
-          echo "IMAGE=ghcr.io/${repo_lower}/app" >> $GITHUB_ENV
-
-          # Определим ветку для тэгирования
-          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
-            BRANCH="${{ github.ref_name }}"
-          else
-            BRANCH="${{ github.event.workflow_run.head_branch }}"
-          fi
-          echo "BRANCH=$BRANCH" >> $GITHUB_ENV
-
-      - name: Log in to GHCR
-        uses: docker/login-action@v3
+      - name: Log in to GitHub Container Registry
+        uses: docker/login-action@v2
         with:
           registry: ghcr.io
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Compute tags
+      - name: Build and push Docker image
         run: |
-          TAGS="${IMAGE}:${GITHUB_SHA}"
-          if [ "${BRANCH}" = "main" ]; then
-            TAGS="${TAGS},${IMAGE}:latest"
-          fi
-          echo "TAGS=$TAGS" >> $GITHUB_ENV
+          IMAGE_NAME=ghcr.io/${{ github.repository }}/app
+          docker build -t $IMAGE_NAME:latest .
+          docker push $IMAGE_NAME:latest
+          docker tag $IMAGE_NAME:latest $IMAGE_NAME:prod
+          docker push $IMAGE_NAME:prod
 
-      - name: Build & Push
-        uses: docker/build-push-action@v5
-        with:
-          context: .
-          push: true
-          tags: ${{ env.TAGS }}
-          labels: |
-            org.opencontainers.image.source=https://github.com/${{ github.repository }}
-            org.opencontainers.image.revision=${{ github.sha }}
-
-  # Заглушка «деплой в prod» — идёт после публикации образа.
-  deploy_prod:
-    needs: build_and_push
-    runs-on: ubuntu-latest
-    if: ${{ env.BRANCH == 'main' || github.ref_name == 'main' }}
-    steps:
-      - name: Deploy (placeholder)
+      - name: Deploy to production
         run: |
-          echo "🚀 Deploying image: ${{ env.IMAGE }} ..."
-          echo "Здесь будет реальный деплой (ssh/k8s/compose)."
+          echo "🚀 Deploy to production (placeholder)"
+          # Здесь можно подключить ssh / kubectl / docker-compose
