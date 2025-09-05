@@ -1,0 +1,50 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.pyc
+*.pyt
+*.log
+*.sqlite3
+
+# Env & Config
+.env
+*.env
+.env.*
+*.db
+
+# Test output
+.coverage
+htmlcov/
+.cache/
+.tox/
+.pytest_cache/
+nosetests.xml
+coverage.xml
+
+# Virtual Envs
+venv/
+ENV/
+env/
+.venv/
+
+# IDEs
+.vscode/
+.idea/
+*.iml
+
+# Docker
+*.pid
+*.tar
+docker-compose.override.yml
+
+# Byte-compiled / optimized / DLL files
+*.so
+*.dll
+*.dylib
+
+# Build & dist
+build/
+dist/
+*.egg-info/
