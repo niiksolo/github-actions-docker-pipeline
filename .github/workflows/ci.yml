@@ -1,10 +1,9 @@
-name: CI Pipeline
+name: CI
 
 on:
   push:
     branches: [ "main" ]
   pull_request:
-    branches: [ "main" ]
 
 jobs:
   tests:
@@ -13,38 +12,53 @@ jobs:
     services:
       postgres:
         image: postgres:15
-        env:
-          POSTGRES_USER: postgres
-          POSTGRES_PASSWORD: postgres
-          POSTGRES_DB: test_db
         ports:
           - 5432:5432
+        env:
+          POSTGRES_DB: bookings_db
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: 12qw12qw
+        # подождём, пока БД прогреется
         options: >-
-          --health-cmd="pg_isready -U postgres"
-          --health-interval=10s
+          --health-cmd="pg_isready -U postgres -d bookings_db"
+          --health-interval=5s
           --health-timeout=5s
-          --health-retries=5
+          --health-retries=10
+
+    env:
+      # ВАЖНО: подключаемся к Postgres-сервису через localhost:5432
+      DATABASE_URL: postgresql+psycopg2://postgres:12qw12qw@127.0.0.1:5432/bookings_db
+      PIP_DISABLE_PIP_VERSION_CHECK: "1"
+      PYTHONDONTWRITEBYTECODE: "1"
+      PYTHONUNBUFFERED: "1"
 
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
           python-version: "3.12"
 
-      - name: Install dependencies
+      - name: Install deps
         run: pip install --no-cache-dir -r requirements.txt
 
-      - name: Wait for Postgres to be ready
+      - name: Wait for Postgres
         run: |
-          until pg_isready -h localhost -p 5432 -U postgres; do
-            echo "Waiting for Postgres..."
-            sleep 2
-          done
+          python - <<'PY'
+          import os, time, psycopg2
+          dsn = "dbname=bookings_db user=postgres password=12qw12qw host=127.0.0.1 port=5432"
+          for i in range(30):
+              try:
+                  psycopg2.connect(dsn).close()
+                  print("Postgres is up ✔")
+                  break
+              except Exception as e:
+                  print("Waiting for Postgres...", e)
+                  time.sleep(2)
+          else:
+              raise SystemExit("Postgres did not become ready in time")
+          PY
 
       - name: Run tests
-        run: pytest tests/unit tests/integration tests/smoke tests/e2e --disable-warnings -q
-        env:
-          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+        run: pytest tests/unit tests/integration tests/smoke tests/e2e --disable-warnings -qpytest tests/unit tests/integration tests/smoke tests/e2e --disable-warnings -q
