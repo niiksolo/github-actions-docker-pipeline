@@ -1,17 +1,16 @@
 name: CD Pipeline
 
 on:
-  workflow_run:
-    workflows: ["CI Pipeline"]   # Ждём успешного CI
-    types:
-      - completed
-  workflow_dispatch:             # Можно вручную запустить staging
+  workflow_dispatch:
+  push:
+    branches:
+      - develop
+      - main
 
 jobs:
   build:
     name: Build & Push Docker Image
     runs-on: ubuntu-latest
-    if: ${{ github.event.workflow_run.conclusion == 'success' || github.event_name == 'workflow_dispatch' }}
 
     steps:
       - uses: actions/checkout@v4
@@ -20,22 +19,23 @@ jobs:
         run: echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
 
       - name: Build Docker image
-        run: docker build -t ghcr.io/${{ github.repository }}/app:${{ github.sha }} .
+        run: docker build -t ghcr.io/${{ github.repository }}:${{ github.sha }} .
 
       - name: Push Docker image (commit tag)
-        run: docker push ghcr.io/${{ github.repository }}/app:${{ github.sha }}
+        run: docker push ghcr.io/${{ github.repository }}:${{ github.sha }}
 
       - name: Add branch tags
+        if: github.ref_name == 'develop' || github.ref_name == 'main'
         run: |
           if [ "${{ github.ref_name }}" = "develop" ]; then
-            docker tag ghcr.io/${{ github.repository }}/app:${{ github.sha }} ghcr.io/${{ github.repository }}/app:staging
-            docker push ghcr.io/${{ github.repository }}/app:staging
+            docker tag ghcr.io/${{ github.repository }}:${{ github.sha }} ghcr.io/${{ github.repository }}:staging
+            docker push ghcr.io/${{ github.repository }}:staging
           fi
           if [ "${{ github.ref_name }}" = "main" ]; then
-            docker tag ghcr.io/${{ github.repository }}/app:${{ github.sha }} ghcr.io/${{ github.repository }}/app:latest
-            docker tag ghcr.io/${{ github.repository }}/app:${{ github.sha }} ghcr.io/${{ github.repository }}/app:prod
-            docker push ghcr.io/${{ github.repository }}/app:latest
-            docker push ghcr.io/${{ github.repository }}/app:prod
+            docker tag ghcr.io/${{ github.repository }}:${{ github.sha }} ghcr.io/${{ github.repository }}:latest
+            docker tag ghcr.io/${{ github.repository }}:${{ github.sha }} ghcr.io/${{ github.repository }}:prod
+            docker push ghcr.io/${{ github.repository }}:latest
+            docker push ghcr.io/${{ github.repository }}:prod
           fi
 
   deploy_staging:
@@ -46,8 +46,8 @@ jobs:
     steps:
       - name: Deploy staging
         run: |
-          echo "🚀 Deploy to staging (using image ghcr.io/${{ github.repository }}/app:staging)"
-          # docker-compose/kubectl/ssh для staging
+          echo "🚀 Deploy to staging (using image ghcr.io/${{ github.repository }}:staging)"
+          # Здесь подключается docker-compose/kubectl/ssh для staging
 
   deploy_prod:
     name: 🚀 Deploy Production
@@ -57,5 +57,5 @@ jobs:
     steps:
       - name: Deploy production
         run: |
-          echo "🚀 Deploy to production (using image ghcr.io/${{ github.repository }}/app:prod)"
-          # docker-compose/kubectl/ssh для prod
+          echo "🚀 Deploy to production (using image ghcr.io/${{ github.repository }}:prod)"
+          # Здесь подключается docker-compose/kubectl/ssh для prod
