@@ -1,0 +1,20 @@
+name: CD - Production
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy-prod:
+    runs-on: ubuntu-latest
+    environment: production
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Deploy to prod
+        run: |
+          echo "🚀 Деплой на PROD..."
+          # docker-compose up / helm upgrade
+          echo "✅ Production деплой завершён"

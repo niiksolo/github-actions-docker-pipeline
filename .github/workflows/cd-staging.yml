@@ -1,0 +1,18 @@
+name: CD - Staging
+
+on:
+  workflow_dispatch:
+
+jobs:
+  deploy-staging:
+    runs-on: ubuntu-latest
+    environment: staging
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Deploy to staging
+        run: |
+          echo "🚀 Деплой на STAGING..."
+          # docker-compose up / kubectl apply
+          echo "✅ Staging деплой завершён"
