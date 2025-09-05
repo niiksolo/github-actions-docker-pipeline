@@ -1,4 +1,4 @@
-name: CI/CD Pipeline
+name: CI
 
 on:
   push:
@@ -9,43 +9,6 @@ on:
   pull_request:
 
 jobs:
-  build:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Log in to GitHub Container Registry
-        uses: docker/login-action@v3
-        with:
-          registry: ghcr.io
-          username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Build and push Docker image
-        run: |
-          IMAGE_NAME=ghcr.io/${{ github.repository }}
-          COMMIT_SHA=${{ github.sha }}
-          BRANCH_NAME=${GITHUB_REF##*/}
-
-          echo "Building image: $IMAGE_NAME"
-
-          docker build -t $IMAGE_NAME:$COMMIT_SHA .
-
-          if [ "$BRANCH_NAME" = "develop" ]; then
-            docker tag $IMAGE_NAME:$COMMIT_SHA $IMAGE_NAME:staging
-            docker push $IMAGE_NAME:staging
-          fi
-
-          if [ "$BRANCH_NAME" = "main" ]; then
-            docker tag $IMAGE_NAME:$COMMIT_SHA $IMAGE_NAME:latest
-            docker tag $IMAGE_NAME:$COMMIT_SHA $IMAGE_NAME:prod
-            docker push $IMAGE_NAME:latest
-            docker push $IMAGE_NAME:prod
-          fi
-
-          docker push $IMAGE_NAME:$COMMIT_SHA
-
   tests:
     runs-on: ubuntu-latest
     services:
@@ -76,8 +39,7 @@ jobs:
           python-version: '3.12'
 
       - name: Install dependencies
-        run: |
-          pip install --no-cache-dir -r requirements.txt
+        run: pip install --no-cache-dir -r requirements.txt
 
       - name: Wait for Postgres
         run: |
@@ -88,5 +50,4 @@ jobs:
           done
 
       - name: Run tests
-        run: |
-          pytest tests/unit tests/integration tests/smoke tests/e2e --disable-warnings -q
+        run: pytest tests --disable-warnings -q
