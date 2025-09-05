@@ -1,34 +1,36 @@
-name: CD Pipeline
+name: CD
 
 on:
   push:
-    branches: [ "develop", "main" ]
+    branches:
+      - main
+  workflow_dispatch:
 
 jobs:
-  build_and_push:
-    name: 🛠 Build & Push Docker
+  deploy-staging:
+    if: ${{ github.event_name == 'workflow_dispatch' }}
     runs-on: ubuntu-latest
+    environment: staging
     steps:
-      - uses: actions/checkout@v4
-      - name: Log in to GHCR
-        run: echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
-      - name: Build Docker image
-        run: docker build -t ghcr.io/${{ github.repository }}/app:${{ github.sha }} .
-      - name: Push Docker image
-        run: docker push ghcr.io/${{ github.repository }}/app:${{ github.sha }}
+      - name: Checkout repo
+        uses: actions/checkout@v4
 
-  deploy_staging:
-    name: 🚀 Deploy Staging
-    runs-on: ubuntu-latest
-    needs: build_and_push
-    if: github.ref == 'refs/heads/develop'
-    steps:
-      - run: echo "Deploying staging from ghcr.io/${{ github.repository }}/app:${{ github.sha }}"
+      - name: Deploy to staging
+        run: |
+          echo "🚀 Деплой на STAGING..."
+          # docker-compose up / kubectl apply
+          echo "✅ Staging деплой завершён"
 
-  deploy_prod:
-    name: 🚀 Deploy Production
+  deploy-prod:
+    if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' }}
     runs-on: ubuntu-latest
-    needs: build_and_push
-    if: github.ref == 'refs/heads/main'
+    environment: production
     steps:
-      - run: echo "Deploying prod from ghcr.io/${{ github.repository }}/app:${{ github.sha }}"
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Deploy to prod
+        run: |
+          echo "🚀 Деплой на PROD..."
+          # docker-compose up / helm upgrade
+          echo "✅ Production деплой завершён"

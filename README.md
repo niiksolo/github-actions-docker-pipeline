@@ -1,7 +1,7 @@
 # Booking Service
 
-![CI](https://github.com/USERNAME/REPO/actions/workflows/ci.yml/badge.svg)
-![CD](https://github.com/USERNAME/REPO/actions/workflows/cd.yml/badge.svg)
+![CI](https://github.com/niiksolo/github-actions-docker-pipeline/actions/workflows/ci.yml/badge.svg)
+![CD](https://github.com/niiksolo/github-actions-docker-pipeline/actions/workflows/cd.yml/badge.svg)
 
 Учебный проект с CI/CD на GitHub Actions:
 - **CI Pipeline**: build → unit tests → integration + smoke + e2e tests.
