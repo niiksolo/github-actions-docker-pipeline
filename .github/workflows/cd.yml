@@ -5,30 +5,25 @@ on:
     workflows: ["CI"]
     types:
       - completed
+  workflow_dispatch:   # 👈 теперь правильно
 
 jobs:
   deploy-staging:
     runs-on: ubuntu-latest
-    needs: []
-    if: ${{ github.event.workflow_run.conclusion == 'success' }}
+    if: ${{ github.event.workflow_run.conclusion == 'success' || github.event_name == 'workflow_dispatch' }}
     steps:
-      - name: Deploy to Staging (manual)
+      - name: Deploy to Staging
         run: echo "🚀 Deploying staging with Docker pull..."
-        shell: bash
     environment:
       name: staging
     concurrency: staging
-    # ручной запуск
-    workflow_dispatch:
 
   deploy-prod:
     runs-on: ubuntu-latest
-    needs: []
-    if: ${{ github.event.workflow_run.conclusion == 'success' && github.ref == 'refs/heads/main' }}
+    if: ${{ (github.event.workflow_run.conclusion == 'success' && github.ref == 'refs/heads/main') || github.event_name == 'workflow_dispatch' }}
     steps:
       - name: Deploy to Production
         run: echo "🚀 Deploying production with Docker pull..."
-        shell: bash
     environment:
       name: production
     concurrency: production
