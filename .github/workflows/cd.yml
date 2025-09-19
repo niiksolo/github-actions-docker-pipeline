@@ -1,17 +1,16 @@
 name: CD Pipeline
 
 on:
-  workflow_dispatch:
-  push:
-    branches:
-      - develop
-      - main
+  workflow_run:
+    workflows: ["CI Pipeline"]
+    types:
+      - completed
 
 jobs:
   build:
     name: Build & Push Docker Image
     runs-on: ubuntu-latest
-
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
     steps:
       - uses: actions/checkout@v4
 
@@ -42,12 +41,12 @@ jobs:
     name: 🚀 Deploy Staging
     runs-on: ubuntu-latest
     needs: build
-    if: github.ref_name == 'develop' || github.event_name == 'workflow_dispatch'
+    if: github.ref_name == 'develop'
     steps:
       - name: Deploy staging
         run: |
           echo "🚀 Deploy to staging (using image ghcr.io/${{ github.repository }}:staging)"
-          # Здесь подключается docker-compose/kubectl/ssh для staging
+          # Здесь можно подключить docker-compose/kubectl/ssh для staging
 
   deploy_prod:
     name: 🚀 Deploy Production
@@ -58,4 +57,4 @@ jobs:
       - name: Deploy production
         run: |
           echo "🚀 Deploy to production (using image ghcr.io/${{ github.repository }}:prod)"
-          # Здесь подключается docker-compose/kubectl/ssh для prod
+          # Здесь можно подключить docker-compose/kubectl/ssh для prod
