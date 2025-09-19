@@ -18,14 +18,14 @@ def test_update_and_delete_booking(client):
         }
     }
 
-    # Создание бронирования
+
     post_resp = client.post("/booking", json=booking)
     assert post_resp.status_code == 200, f"POST failed: {post_resp.data}"
     data = post_resp.get_json()
     assert "bookingid" in data, "Response missing bookingid"
     booking_id = data["bookingid"]
 
-    # Обновление бронирования
+
     updated_data = {
         "firstname": "New",
         "lastname": "Name",
@@ -44,11 +44,11 @@ def test_update_and_delete_booking(client):
     assert put_json["booking"]["firstname"] == "New"
     assert put_json["booking"]["totalprice"] == 150
 
-    # Удаление бронирования
+
     delete_resp = client.delete(f"/booking/{booking_id}")
     assert delete_resp.status_code == 200, f"DELETE failed: {delete_resp.data}"
     assert delete_resp.get_json() == {"status": "deleted"}
 
-    # Проверка, что бронирование удалено
+
     get_resp = client.get(f"/booking/{booking_id}")
     assert get_resp.status_code == 404, f"GET after delete should 404, got {get_resp.status_code}"

@@ -4,14 +4,13 @@ from app.db import init_db
 import logging
 import os
 
-# Загружаем .env только для локальной разработки
 from dotenv import load_dotenv
 load_dotenv()
 
 def create_app():
     app = Flask(__name__)
 
-    # Инициализация базы данных
+
     try:
         init_db()
         print(f"Database initialized successfully. URL={os.getenv('DATABASE_URL')}")

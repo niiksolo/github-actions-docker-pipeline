@@ -5,7 +5,7 @@ from app.db import engine
 
 @pytest.fixture(scope="module")
 def client():
-    # Инициализируем БД
+
     Base.metadata.create_all(bind=engine)
 
     app = create_app()
@@ -13,7 +13,7 @@ def client():
 
     yield client
 
-    # После завершения тестов — чистим базу
+
     Base.metadata.drop_all(bind=engine)
 
 def test_smoke_ping(client):
