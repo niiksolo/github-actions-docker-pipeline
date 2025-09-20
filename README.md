@@ -11,6 +11,9 @@
 - CD Pipeline: build Docker image → deploy staging (develop) → deploy production (main)
 - Автоматическая публикация Docker-образов в GitHub Container Registry (GHCR)
 
+## 🐳 Docker образы
+Образы проекта можно посмотреть и скачать здесь: [GitHub Container Registry](https://github.com/niiksolo/github-actions-docker-pipeline/pkgs/container/github-actions-docker-pipeline)
+
 ## 🚀 Технологии
 - Python 3.12 + FastAPI
 - PostgreSQL 15
