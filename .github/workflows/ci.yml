@@ -2,8 +2,9 @@ name: CI Pipeline
 
 on:
   push:
-    branches: [ "main" ]   # Запуск при пуше в main
-  pull_request:            # И при pull request
+    branches: [ "main", "develop" ]
+  pull_request:
+    branches: [ "main", "develop" ]
 
 jobs:
   build:
@@ -17,13 +18,12 @@ jobs:
           python-version: "3.12"
       - name: Install deps
         run: pip install --no-cache-dir -r requirements.txt
-      # 👉 На этом этапе мы только проверяем,
-      # что проект собирается и зависимости корректные.
+
 
   unit_tests:
     name: ⚡ Unit Tests
     runs-on: ubuntu-latest
-    needs: build   # выполняется только после успешного build
+    needs: build
     steps:
       - uses: actions/checkout@v4
       - name: Set up Python
@@ -34,14 +34,14 @@ jobs:
         run: pip install --no-cache-dir -r requirements.txt
       - name: Run unit tests
         run: pytest tests/unit --disable-warnings -q
-      # 👉 Unit-тесты не требуют базы, только код.
+
 
   integration_tests:
     name: 🔗 Integration Tests
     runs-on: ubuntu-latest
     needs: build
 
-    services:   # Поднимаем Postgres для тестов
+    services:
       postgres:
         image: postgres:15
         env:
